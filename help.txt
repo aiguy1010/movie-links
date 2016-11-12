@@ -1,0 +1,72 @@
+add movie [title]:
+      Adds an empty movie [title] to the Local Movie Database.
+
+
+add actor [actor] [title]:
+      Adds actor [actor] to movie [title].
+
+
+clear:
+      Clears the terminal.
+
+delete:
+      Runs "delete movie" on the last movie downloaded
+
+delete actor [name] [title]:
+      Removes the specified actor from the specified movie.
+
+
+delete movie [title]
+      Removes the specified movie from the Local Movie Database.
+
+
+display:
+      Displays the full contents of the Local Movie Database.
+
+
+done:
+      Ends the program (same as exit).
+
+
+download [title], ([number of actors]=5):
+      Downloads info on [title] from IMDb to the Local Movie Database.
+      If [number of actors] is present, download that many (defaults to 5). 
+
+
+exit:
+      Ends the program (same as done).
+
+
+help:
+      Well... you must be familiar with this one, right?
+
+
+list ([title]):
+      If [title] is present, lists the actors in the specified movie. Otherwise
+      lists the titles of all movies in the Local Movie Database.
+
+
+load:
+      Load contents into the Local Movie Database from the HDD.
+
+
+generate:
+      Generate a Movie-Link for the user to solve.
+
+
+save:
+      Saves the current Local Movie Database to the HDD. If "savePath" 
+      variable has not been changed, this save will be automatically loaded
+      next time the program starts.
+
+set [variable] [value]
+
+
+solve [movie1], [movie2]:
+      Display a list of solutions for this Movie-Link, or "No solutions 
+      found!" if none could be found. Arguments/titles must be separated 
+      by a comma.
+
+
+spoil:
+      Print the solution(s) to the last Movie-Link generated using "generate".
