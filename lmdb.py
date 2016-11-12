@@ -1,14 +1,8 @@
 from movie import *
-import urllib3
-import re
+import requests
+import json
 
-resultMatcher = re.compile(r'<table class="findList">[\s\S]*?<td class="result_text">[\s\S]*?<a href="(.*?)" >')
-titleMatcher = re.compile(r'<h1 class="header"> <span class="itemprop" itemprop="name">(.*?)<\/span>[\s]*<span class="nobr">\(<a href=".*?"[\s]>([0-9]{4})<\/a>')
-starsSecMatcher = re.compile(r'<h4 class="inline">Stars:<\/h4>([\s\S]*?)See full cast and crew')
-starMatcher = re.compile(r'itemprop="name">(.*?)<\/span>')
-castSecMatcher = re.compile(r'<table class="cast_list">[\s\S]*?<\/table>')
-
-actorMatcher = re.compile(r'<span class="itemprop" itemprop="name">(.*?)</span>')
+apiUrl = 'https://www.omdbapi.com/?'
 
 class LMDb(object):
     def __init__(self, filename=None, movies=[]):
@@ -75,42 +69,21 @@ class LMDb(object):
             print('')
 
     def download(self, title, actorCount=5):
-        # Search
+        # Pull the data from OMDb
         words = title.strip().split()
-        quary = ''
+        titleQuary = ''
         for word in words:
-            quary += word + '+'
-        quary = quary[:-1]
-        searchUrl='http://www.imdb.com/find?ref_=nv_sr_fn&q='+quary+'&s=all'
-        searchPage = urllib3.urlopen(searchUrl).read()
-        movieUrl = resultMatcher.search(searchPage).group(1)
+            titleQuary += word + '+'
+        titleQuary = titleQuary[:-1]
+        requestUrl= apiUrl + 't=' + titleQuary + '&r=json'
+        response = requests.get( requestUrl )
+        data = json.loads(response.text)
 
-        # Rip
-        moviePage = urllib3.urlopen('http://www.imdb.com'+movieUrl).read()
-        officialTitle, year = titleMatcher.search(moviePage).groups()
+        actors=        data['Actors'].split(', ')
+        officialTitle= data['Title']
+        year=          data['Year']
 
-        starsSec = starsSecMatcher.search(moviePage).group(0)
-        stars = starMatcher.findall(starsSec)[::-1]
-        castSection = castSecMatcher.search(moviePage).group(0)
-        cast = actorMatcher.findall(castSection)[::-1]
-
-        # Add
-        pickedActors = []
-        picked = 0
-        while picked < actorCount:
-            if len(stars) > 0:
-                pickedActors.append(stars.pop())
-                picked += 1
-                continue
-            elif len(cast) > 0:
-                actor = cast.pop()
-                if actor not in pickedActors:
-                    pickedActors.append(actor)
-                    picked += 1
-                continue
-            else:
-                break
-        self.add( Movie(officialTitle, pickedActors) )
+        self.add( Movie(officialTitle, actors) )
 
         return officialTitle, year
 
