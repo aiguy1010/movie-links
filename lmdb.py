@@ -1,6 +1,7 @@
 from movie import *
+from lxml import html
 import requests
-import json
+
 
 apiUrl = 'https://www.omdbapi.com/?'
 
@@ -69,19 +70,24 @@ class LMDb(object):
             print('')
 
     def download(self, title, actorCount=5):
-        # Pull the data from OMDb
-        words = title.strip().split()
-        titleQuary = ''
-        for word in words:
-            titleQuary += word + '+'
-        titleQuary = titleQuary[:-1]
-        requestUrl= apiUrl + 't=' + titleQuary + '&r=json'
-        response = requests.get( requestUrl )
-        data = json.loads(response.text)
+        # Get search results
+        query = title.strip().replace(' ', '+')
+        response = requests.get('http://www.imdb.com/find?ref_=nv_sr_fn&q='+query+'&s=all')
+        searchPage = html.fromstring(response.content)
 
-        actors=        data['Actors'].split(', ')
-        officialTitle= data['Title']
-        year=          data['Year']
+        # Get the IMDb resourse id of the first result
+        firstResult = searchPage.xpath("//td[@class='result_text']")[0]
+        linkStr = firstResult.xpath("./a/@href")[0]
+        firstSlash = linkStr.find('/', 1)
+        secondSlash = linkStr.find('/', firstSlash+1)
+        movieId = linkStr[firstSlash+1: secondSlash]
+
+        # Also get the official title and release year
+        officialTitle= firstResult.xpath('./a/text()')[0]
+        year =         firstResult.xpath('./text()')[1].strip()[1:-1]
+
+        # Load the cast page for this movie
+        # TODO...
 
         self.add( Movie(officialTitle, actors) )
 
@@ -101,3 +107,7 @@ class LMDb(object):
         ignore = ['the', 'a']
         self.movies.sort( key=lambda movie: movie.title.lower() if movie.title.lower().split()[0] not in ignore else ' '.join(movie.title.lower().split()[1:]) )
         self.titleRegistry.sort( key=lambda title: title.lower() if title.lower().split()[0] not in ignore else ' '.join(title.lower().split()[1:]) )
+
+if __name__ == '__main__':
+    lmdb = LMDb()
+    lmdb.download('batman')
