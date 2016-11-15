@@ -16,11 +16,8 @@ lastDownloadTitle = None
 
 print('Welcome to Movie Linker v0.3!')
 print('Type "help" for a list of available commands.')
-first = True
+
 while True:
-    if not first:
-        print('')
-    first = False
     # Format input
     inputList = input('>').strip().split()
     if len(inputList)==0:
@@ -137,9 +134,15 @@ while True:
         if len(argv) == 0:
             print('Command "download" requires an argument. Type "help" for additional info.')
             continue
-        title = ' '.join(argv)
         try:
-            downloadedTitle, year = myLMDb.download(title)
+            actorCount=5
+            if '-n' in argv:
+                i = argv.index('-n')
+                actorCount = int( argv[i+1] )
+                argv= argv[:i]
+            title = ' '.join(argv)
+
+            downloadedTitle, year = myLMDb.download(title, actorCount)
             lastDownloadTitle = downloadedTitle
             print('Downloaded...')
             print('Title: ' + downloadedTitle)
