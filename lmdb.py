@@ -72,8 +72,8 @@ class LMDb(object):
     def download(self, title, actorCount=5):
         # Get search results
         query = title.strip().replace(' ', '+')
-        response = requests.get('http://www.imdb.com/find?ref_=nv_sr_fn&q='+query+'&s=all')
-        searchPage = html.fromstring(response.content)
+        searchResponse = requests.get('http://www.imdb.com/find?ref_=nv_sr_fn&q='+query+'&s=all')
+        searchPage = html.fromstring(searchResponse.content)
 
         # Get the IMDb resourse id of the first result
         firstResult = searchPage.xpath("//td[@class='result_text']")[0]
@@ -84,12 +84,16 @@ class LMDb(object):
 
         # Also get the official title and release year
         officialTitle= firstResult.xpath('./a/text()')[0]
-        year =         firstResult.xpath('./text()')[1].strip()[1:-1]
+        year=          firstResult.xpath('./text()')[1].strip()[1:-1]
 
         # Load the cast page for this movie
-        # TODO...
+        castUrl = 'http://www.imdb.com/title/'+movieId+'/fullcredits?ref_=tt_cl_sm#cast'
+        castResponse = requests.get(castUrl)
+        castPage = html.fromstring(castResponse.content)
+        fullCast = castPage.xpath("//td[@itemprop='actor']//span[@itemprop='name']/text()")
 
-        self.add( Movie(officialTitle, actors) )
+        # Add the movie to the data base and return
+        self.add( Movie(officialTitle, fullCast[:actorCount]) )
 
         return officialTitle, year
 
